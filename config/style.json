@@ -1,0 +1,90 @@
+{
+  "_comment": "Style bible for the haul-video agent. Fixed for every video: the woman, the room, the framing, the poses, the sound. Per product: the garment photos and the vision caption that scrape.py writes into the manifest. build_keyframe.py builds the try-on still prompt and build_workflow.py builds MiniMax H3's six-section reference prompt from this file.",
+
+  "output": {
+    "width": 640,
+    "height": 1152,
+    "fps": 24,
+    "frames_per_segment": 240,
+    "max_frames": 360,
+    "note": "9:16 Shorts/Reels canvas. H3 snaps 240 frames to 243 = 10.1 s per outfit."
+  },
+
+  "models": {
+    "unet": "minimax_h3_ref2va_bf16.safetensors",
+    "turbo_lora": "minimax_h3_turbo_4step_ema_ckpt500.safetensors",
+    "text_encoder": "MiniMax-H3/qwen3vl_32b_minimax_h3_ultra_uncensored_heretic_int8_convrot.safetensors",
+    "video_vae": "minimax_h3_video_vae_fp16.safetensors",
+    "audio_vae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+
+  "sampler": {
+    "scheduler": "simple",
+    "steps": 8
+  },
+
+  "refs": {
+    "_comment": "H3 reference order = <Picture N> order: identity pictures, the room, the masked product photos, then the approved try-on still. Max 9 images in total.",
+    "identity": [
+      "haul_base/face.jpg",
+      "haul_base/sheet.png"
+    ],
+    "scene": "haul_base/room.jpg",
+    "max_dress_refs": 4,
+    "ref_image_size": "max"
+  },
+
+  "character": {
+    "_comment": "assets/character/face.jpg and sheet.png are the identity. The text only names what the pictures show plus the fixed styling decisions.",
+    "description": "a young Indian woman with a warm, light wheatish complexion with golden undertones, a round face with full cheeks, dark brown eyes under well-defined dark eyebrows, long loose wavy black hair parted off-centre and falling over her shoulders exactly as in her reference pictures, small stud earrings close to the earlobe and no necklace; her resting expression is relaxed and natural with a small closed-lip smile",
+    "ignore_in_refs": "the navy top she wears in those pictures, the long dangling earrings and any chain she wears there, the plain studio backdrop and her wide open-mouth smile there are not part of the target video — the pictures define her face, hairstyle and body proportions, not her clothes, jewellery or expression"
+  },
+
+  "scene": {
+    "description": "a bright, airy living room with white wall panelling, a glossy beige tiled floor, a round woven jute rug in the centre, a rattan pendant lamp hanging from a ceiling rose, a tall curtained window on the left letting in soft warm daylight, a low wooden sideboard and framed abstract prints on the right"
+  },
+
+  "keyframe": {
+    "_comment": "Stage A: Qwen Image Edit 2511 try-on still per outfit. image 1 = identity panel (face + the sheet's full-body view), image 2 = masked product photo(s), image 3 = the room. Each candidate gets her face swapped in by ReActor, is cropped to the clip framing, scored against the product photos by the vision model, and the best becomes frame 0 of the H3 clip.",
+    "enabled": true,
+    "identity_ref": "haul_base/identity_kf.jpg",
+    "width": 832,
+    "height": 1472,
+    "steps": 4,
+    "cfg": 1.0,
+    "shift": 3.1,
+    "seed": 20261020,
+    "candidates": 3,
+    "engine": "krea2",
+    "krea_candidates": 3,
+    "engine_note": "auto = both engines compete per outfit and the garment check picks the winner (recommended); krea2 = Krea 2 Identity Edit two-pass try-on (product photo -> our woman in the garment -> placed in the room), best garment fidelity; qwen = Qwen Image Edit 2511 composition from identity + garment + room.",
+    "krea_steps": 10,
+    "krea_ref_boost": 1.5,
+    "face_swap": true,
+    "ref_panels": 2,
+    "models": {
+      "unet": "qwen_image_edit_2511_fp8mixed.safetensors",
+      "lightning_lora": "Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors",
+      "text_encoder": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+      "vae": "qwen_image_vae.safetensors"
+    },
+    "ref_layout_single": "a full-length photo of the outfit",
+    "ref_layout_two": "a two-panel reference of the SAME outfit: a full-length view on the left and a close-up of its details on the right; use both panels to copy the garment and do not reproduce the panel layout or the person in them",
+    "prompt_template": "A photorealistic full-body photograph of one woman standing in a living room.\n\nWHO: the woman in image 1 — {character}. Image 1 has two panels: her face on the left, her full body seen from behind on the right. Take her face, skin tone and hairstyle from the left panel and her height, build and face-to-body proportions from the right panel. Nothing she wears in image 1 is used: no garment, no colour, no jewellery from image 1.\n\nWHAT SHE WEARS: exactly the outfit in image 2 ({ref_layout}): {outfit}. The outfit is {colour}, the colour of the garments in image 2. Copy the garments faithfully — same pieces, same length, same neckline and trim, same sleeves and cuffs, same bottoms, embroidery or print only where image 2 shows it and nowhere else; plain fabric stays plain. The top is one single garment with the same cut as in image 2 — not a jacket, overlay, wrap or layered top unless image 2 shows that. Nothing is added: no dupatta, scarf, belt, necklace or chain; small stud earrings only.\n\nWHERE: the room in image 3 ({room}). She stands at the centre of the frame with both feet on the round jute rug, squarely facing the camera, feet a little apart, arms relaxed at her sides, a calm natural expression with a small closed-lip smile and lips together.\n\nCAMERA: vertical 9:16, tripod at chest height a few steps in front of her, her whole body visible from the top of her hair to her feet with a little floor below her shoes, the white panelled wall, rattan pendant lamp and window behind her. Soft natural daylight from the left, true-to-life skin and fabric texture, no text, no watermark.",
+    "negative": "blurry, deformed hands, extra limbs, text, watermark, cropped feet, cropped head, different face, two people, split image, collage, clothing from image 1, garments not shown in image 2, added layers, added trims, necklace, neck chain, pendant, long dangling earrings, wide open-mouth grin, visible teeth, slimmer face, beautified face, pale skin, very dark skin"
+  },
+
+  "style_line": "The target video is a photorealistic vertical 9:16 fashion-haul clip in the style of an Instagram Reel: natural daylight, true-to-life skin texture, crisp fabric detail, no text, no captions, no watermark, no on-screen graphics.",
+
+  "framing": "A single static full-body shot from a tripod-mounted camera at chest height, locked off with no pan, tilt, zoom or handheld drift. She is centred in the frame with a little headroom above her hair and her feet fully visible above the bottom edge, so the entire outfit from neckline to hem to shoes is readable at all times. The floor, the rug, the furniture, the walls and the lamp keep exactly the position and size they have in the first frame; nothing in the room moves, grows, shrinks or changes.",
+
+  "default_pose": "turn",
+  "poses": {
+    "turn": "She begins facing the camera, standing relaxed with her weight on one leg and her hands resting lightly at her sides, with a calm, natural expression and a small closed-lip smile, lips together. Over the first three seconds she lifts one hand to brush her hair behind her ear, glances down at her outfit for a moment, then looks back up at the lens. From about three seconds she turns slowly and smoothly to her right with a neutral, composed face, pausing briefly in profile so the side of the outfit is clearly visible, then continues until her back faces the camera at about six seconds, showing the back of the garments and the fall of the fabric. She then turns back the same way, and by about eight seconds she faces the camera again, places one hand on her hip and lets a slightly wider, genuine smile appear for the last two seconds. Her expression changes naturally through the clip and is never a fixed grin; her feet stay on the same spot of the floor throughout; the movement is calm, continuous and unhurried.",
+    "static": "She stands facing the camera for the whole clip, upright and relaxed, weight evenly on both feet, hands resting lightly at her sides, with a calm, natural expression and a small closed-lip smile. Her expression shifts naturally: she glances down at the outfit around the two-second mark, looks back up, shifts her weight from one foot to the other around the midpoint, smooths the garment with one hand near the end and lets a slightly wider smile appear in the final second. She never moves from her spot.",
+    "walk": "She starts a step behind the rug facing the camera with a calm, closed-lip expression, then walks slowly toward the camera for about three seconds with a relaxed, natural stride so the fabric moves with each step. She stops at the centre of the frame, pauses with a composed face, turns a slow full circle on the spot between about four and eight seconds so the front, side and back of the outfit are all shown, and finishes facing the camera with one hand on her hip and a soft, genuine smile in the last two seconds; her expression changes naturally and is never a fixed grin."
+  },
+
+  "soundscape": "Quiet indoor room tone with the faint rustle of fabric as she moves; no speech, no dialogue, no voice-over.",
+  "music": "N/A"
+}

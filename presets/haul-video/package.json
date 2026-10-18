@@ -1,0 +1,12 @@
+{
+  "name": "@local/haul-video-preset",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Haul-video agent: fixed character + fixed room, dress links in, 9:16 video out (MiniMax H3 on local ComfyUI)",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

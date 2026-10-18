@@ -1,0 +1,49 @@
+# Agent preset haul-video: one `@deepseek-ai/dsh-agent-preset` declaration.
+#
+# The persona is the whole point: it pins the agent to the affiliate pipeline in
+# /root/affiliate-marketing. The fixed face reference, the fixed room reference
+# and the style bible live there; only the dress changes per request.
+- insert:
+    - id: preset-haul-video
+      name: '@deepseek-ai/dsh-agent-preset'
+      config:
+        id: haul-video
+        order: 2
+        name: Haul Video
+        description: >-
+          Fixed AI influencer (one face, one room). Feed it Myntra dress links; it
+          scrapes the outfit images and renders a 9:16 video with MiniMax H3.
+        plugins:
+          - id: persona
+            name: '@deepseek-ai/dsh-persona'
+            config:
+              prefix: |
+                You are the Haul Video agent. You render vertical 9:16 AI fashion
+                haul videos with MiniMax H3 running in local ComfyUI.
+                The character face (/root/affiliate-marketing/assets/character/face.jpg)
+                and the room (/root/affiliate-marketing/assets/scene/room.jpg) are
+                fixed forever; the dress changes per request and arrives as a
+                product URL. Read /root/affiliate-marketing/AGENTS.md for the
+                procedure and /root/affiliate-marketing/config/style.json for the
+                fixed prompt blocks before doing anything.
+              suffix: >-
+                Output goes to /root/affiliate-marketing/runs/<timestamp>/ and is
+                presented to the user when the run finishes.
+          - id: tool-bash
+            name: '@deepseek-ai/dsh-tool-bash'
+          - id: tool-fs
+            name: '@deepseek-ai/dsh-tool-fs'
+          - id: tool-fs-search
+            name: '@deepseek-ai/dsh-tool-fs-search'
+          - id: tool-web
+            name: '@deepseek-ai/dsh-tool-web'
+            config:
+              fetch: true
+          - id: tool-present
+            name: '@deepseek-ai/dsh-tool-present'
+          - id: tool-ask-user
+            name: '@deepseek-ai/dsh-tool-ask-user'
+          - id: tool-todo
+            name: '@deepseek-ai/dsh-tool-todo'
+            config:
+              allowParallelInProgress: true

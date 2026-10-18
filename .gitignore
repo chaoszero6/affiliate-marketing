@@ -1,0 +1,22 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# run outputs / archives
+runs/
+work/
+qa/
+
+# generated caches
+__pycache__/
+*.py[cod]
+config/node_schemas.json
+config/node_schemas.json.bak
+
+# legacy experimental pipeline (use scripts/build_workflow.py instead)
+workflows/
+bg_room.jpg
+
+*.log
+.DS_Store
